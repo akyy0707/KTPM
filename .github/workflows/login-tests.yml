@@ -38,7 +38,7 @@ jobs:
           --watchAll=false \
           --json \
           --outputFile=unit-test-result.json
-          working-directory: FloginFE_BE/frontend
+          working-directory: FloginFE_BE/frontend/src/tests
 
       # 6️⃣ Run Cypress E2E Tests
       - name: Run Login E2E Tests
@@ -47,7 +47,7 @@ jobs:
           start: npm start
           wait-on: 'http://localhost:3000'
           spec: 'cypress/e2e/login.e2e.spec.js'
-          working-directory: FloginFE_BE/frontend/src/tests
+          working-directory: FloginFE_BE/frontend
 
       # 7️⃣ Upload test reports
       - name: Upload Test Reports
