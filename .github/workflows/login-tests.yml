@@ -24,19 +24,16 @@ jobs:
       # 3. Install dependencies
       - name: Install dependencies
         run: |
-          cd frontend
           npm install
 
       # 4. Run Unit Tests (Login)
       - name: Run Login Unit Tests
         run: |
-          cd frontend
           npm test -- --testPathPattern=Login --json --outputFile=unit-test-result.json
 
       # 5. Run E2E Tests (Cypress)
       - name: Run Login E2E Tests
         run: |
-          cd frontend
           npx cypress run --spec "cypress/e2e/login.e2e.spec.js" --reporter junit --reporter-options "mochaFile=cypress/results/e2e-[hash].xml"
 
       # 6. Upload test artifacts (logs, screenshots, videos)
