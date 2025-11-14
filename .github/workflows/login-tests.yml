@@ -33,13 +33,18 @@ jobs:
           cd frontend
           npm test -- --testPathPattern=Login --watchAll=false --json --outputFile=unit-test-result.json
 
-      # 5. Run E2E Tests with Cypress
+      # 5. Prepare Cypress results folder
+      - name: Prepare Cypress results folder
+        run: |
+          mkdir -p frontend/cypress/results
+
+      # 6. Run E2E Tests with Cypress
       - name: Run Login E2E Tests
         run: |
           cd frontend
           npx cypress run --spec "cypress/e2e/login.e2e.spec.js" --reporter junit --reporter-options "mochaFile=cypress/results/e2e-results.xml"
 
-      # 6. Upload test reports as artifacts (optional)
+      # 7. Upload test reports as artifacts
       - name: Upload Test Reports
         uses: actions/upload-artifact@v3
         with:
