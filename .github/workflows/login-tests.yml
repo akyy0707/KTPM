@@ -30,10 +30,15 @@ jobs:
         run: npm install
         working-directory: FloginFE_BE/frontend
 
-      # 5️⃣ Run Unit Tests
+      # 5️⃣ Run Unit Tests (chỉ Login-related files)
       - name: Run Login Unit Tests
-        run: npm test -- --testPathPattern=Login --watchAll=false --json --outputFile=unit-test-result.json
-        working-directory: FloginFE_BE/frontend
+        run: |
+          npm test -- \
+          --testPathPattern="(validation\.test\.js|Login\.mock\.test\.jsx|Login\.integration\.test\.jsx)" \
+          --watchAll=false \
+          --json \
+          --outputFile=unit-test-result.json
+          working-directory: FloginFE_BE/frontend
 
       # 6️⃣ Run Cypress E2E Tests
       - name: Run Login E2E Tests
