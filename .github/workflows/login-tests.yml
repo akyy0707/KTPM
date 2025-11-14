@@ -9,20 +9,15 @@ on:
 jobs:
   test-login:
     runs-on: ubuntu-latest
-    
-    # ⚠️ FIX: REMOVING the 'defaults' block and setting 'working-directory' EXPLICITLY on every step.
 
     steps:
       # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Diagnostic Step: Verify directory structure (CRITICAL: Look at the output of this step!)
-      - name: Show repository file structure
-        # This shows the exact folder names and casing in your repository.
-        # Ensure the output shows 'frontend' exactly as written.
+      # 2️⃣ Diagnostic Step: show files for debugging
+      - name: Show repository structure
         run: ls -R
-        working-directory: ${{ github.workspace }}
         shell: bash
 
       # 3️⃣ Setup Node.js
@@ -31,33 +26,29 @@ jobs:
         with:
           node-version: 18
 
-      # 4️⃣ Install dependencies (Now EXPLICITLY set to 'frontend')
-      - name: Install Frontend dependencies
+      # 4️⃣ Install dependencies
+      - name: Install dependencies
         run: npm install
-        working-directory: frontend # <-- Explicitly forcing the path here
 
-      # 5️⃣ Run Unit Tests for Login (Now EXPLICITLY set to 'frontend')
+      # 5️⃣ Run Login Unit Tests
       - name: Run Login Unit Tests
         run: |
           npm test -- --testPathPattern=Login --watchAll=false --json --outputFile=unit-test-result.json
-        working-directory: frontend # <-- Explicitly forcing the path here
 
-      # 6️⃣ & 7️⃣ Run E2E Tests with Cypress
+      # 6️⃣ Run E2E Tests with Cypress
       - name: Run Login E2E Tests
         uses: cypress-io/github-action@v6
         with:
           start: npm start
           wait-on: 'http://localhost:3000'
           spec: 'cypress/e2e/login.e2e.spec.js'
-          working-directory: frontend # <-- Already explicit
 
-      # 8️⃣ Upload test reports as artifacts
-      # Paths here must be relative to the repository root.
+      # 7️⃣ Upload test reports as artifacts
       - name: Upload Test Reports
         uses: actions/upload-artifact@v4
         with:
           name: login-test-reports
           path: |
-            frontend/unit-test-result.json
-            frontend/cypress/results/e2e-results.xml
+            unit-test-result.json
+            cypress/results/e2e-results.xml
           retention-days: 7
