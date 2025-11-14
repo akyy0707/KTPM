@@ -15,10 +15,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Diagnostic Step: show repo structure
+      # 2️⃣ Show repo structure (debug)
       - name: Show repository structure
         run: ls -R
-        shell: bash
 
       # 3️⃣ Setup Node.js
       - name: Setup Node.js
@@ -26,25 +25,24 @@ jobs:
         with:
           node-version: 18
 
-      # 4️⃣ Install dependencies (frontend)
-      - name: Install Frontend Dependencies
+      # 4️⃣ Install dependencies
+      - name: Install Frontend dependencies
         run: npm install
-        working-directory: FLoginFE_BE/frontend
+        working-directory: FloginFE_BE/frontend
 
-      # 5️⃣ Run Login Unit Tests
+      # 5️⃣ Run Unit Tests
       - name: Run Login Unit Tests
-        run: |
-          npm test -- --testPathPattern=Login --watchAll=false --json --outputFile=unit-test-result.json
-        working-directory: FLoginFE_BE/frontend
+        run: npm test -- --testPathPattern=Login --watchAll=false --json --outputFile=unit-test-result.json
+        working-directory: FloginFE_BE/frontend
 
-      # 6️⃣ Run E2E Tests with Cypress
+      # 6️⃣ Run Cypress E2E Tests
       - name: Run Login E2E Tests
         uses: cypress-io/github-action@v6
         with:
           start: npm start
           wait-on: 'http://localhost:3000'
           spec: 'cypress/e2e/login.e2e.spec.js'
-          working-directory: FLoginFE_BE/frontend
+          working-directory: FloginFE_BE/frontend
 
       # 7️⃣ Upload test reports
       - name: Upload Test Reports
@@ -52,6 +50,6 @@ jobs:
         with:
           name: login-test-reports
           path: |
-            FLoginFE_BE/frontend/unit-test-result.json
-            FLoginFE_BE/frontend/cypress/results/e2e-results.xml
+            FloginFE_BE/frontend/unit-test-result.json
+            FloginFE_BE/frontend/cypress/results/e2e-results.xml
           retention-days: 7
