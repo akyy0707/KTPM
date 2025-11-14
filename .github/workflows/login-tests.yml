@@ -1,10 +1,11 @@
+# .github/workflows/login-tests.yml
 name: Login Tests CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main, develop ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   test-login:
@@ -13,36 +14,32 @@ jobs:
     steps:
       # 1. Checkout code
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # 2. Setup Node.js
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
 
       # 3. Install dependencies
       - name: Install dependencies
-        run: |
-          npm install
+        working-directory: ./frontend
+        run: npm install
 
-      # 4. Run Unit Tests (Login)
+      # 4. Run Unit Tests (Login-related)
       - name: Run Login Unit Tests
-        run: |
-          npm test -- --testPathPattern=Login --json --outputFile=unit-test-result.json
+        working-directory: ./frontend
+        run: npm test -- --testPathPattern=Login --watchAll=false --coverage
 
-      # 5. Run E2E Tests (Cypress)
+      # 5. Run E2E Tests
       - name: Run Login E2E Tests
-        run: |
-          npx cypress run --spec "cypress/e2e/login.e2e.spec.js" --reporter junit --reporter-options "mochaFile=cypress/results/e2e-[hash].xml"
+        working-directory: ./frontend
+        run: npx cypress run --spec "cypress/e2e/login.e2e.spec.js" --reporter mocha-junit-reporter --reporter-options "mochaFile=reports/e2e-results.xml"
 
-      # 6. Upload test artifacts (logs, screenshots, videos)
-      - name: Upload Test Artifacts
+      # 6. Upload E2E Test Report
+      - name: Upload E2E Test Report
         uses: actions/upload-artifact@v4
         with:
-          name: login-test-artifacts
-          path: |
-            frontend/unit-test-result.json
-            frontend/cypress/results
-            frontend/cypress/screenshots
-            frontend/cypress/videos
+          name: e2e-test-report
+          path: frontend/reports/e2e-results.xml
