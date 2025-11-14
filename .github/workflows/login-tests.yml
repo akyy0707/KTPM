@@ -9,39 +9,47 @@ on:
 jobs:
   test-login:
     runs-on: ubuntu-latest
+  
+    defaults:
+      run:
+        working-directory: frontend
 
     steps:
       # 1️⃣ Checkout repository
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # 2️⃣ Setup Node.js
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
-       # 3️⃣ Install dependencies
-      # - name: Install dependencies
-      #   run: npm install
+      # 3️⃣ Install dependencies (Runs in 'frontend' due to defaults.run)
+      - name: Install Frontend dependencies
+        run: npm install
 
       # 4️⃣ Run Unit Tests for Login
       - name: Run Login Unit Tests
         run: |
           npm test -- --testPathPattern=Login --watchAll=false --json --outputFile=unit-test-result.json
 
-      # 5️⃣ Run E2E Tests with Cypress
+      # 5️⃣ & 6️⃣ Run E2E Tests with Cypress (CRITICAL FIX: Starting the app)
       - name: Run Login E2E Tests
-        run: |
-          npx cypress run --spec "cypress/e2e/login.e2e.spec.js" \
-          --reporter junit \
-          --reporter-options "mochaFile=cypress/results/e2e-results.xml"
+        uses: cypress-io/github-action@v6
+        with:
+          start: npm start
+          wait-on: 'http://localhost:3000'
+          spec: 'cypress/e2e/login.e2e.spec.js'
 
-      # 6️⃣ Upload test reports as artifacts
+      # 7️⃣ Upload test reports as artifacts
       - name: Upload Test Reports
         uses: actions/upload-artifact@v4
         with:
           name: login-test-reports
           path: |
-            unit-test-result.json
-            cypress/results/e2e-results.xml
+            # ⚠️ FIX: Corrected path for unit test result
+            frontend/unit-test-result.json
+            # ⚠️ FIX: Assuming the E2E XML file is created relative to the working directory
+            frontend/cypress/results/e2e-results.xml
+          retention-days: 7
