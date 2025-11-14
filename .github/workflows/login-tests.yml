@@ -7,46 +7,45 @@ on:
     branches: [main]
 
 jobs:
-  login-tests:
+  test-login:
     runs-on: ubuntu-latest
 
     steps:
       # 1. Checkout code
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
       # 2. Setup Node.js
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
         with:
-          node-version: 18
+          node-version: '18'
 
       # 3. Install dependencies
-      - run: |
+      - name: Install dependencies
+        run: |
           cd frontend
           npm install
 
-      # 4. Run Unit Tests (Jest) với báo cáo JSON
-      - name: Run Unit Tests
+      # 4. Run Unit Tests (Login)
+      - name: Run Login Unit Tests
         run: |
           cd frontend
-          npm test -- --testPathPattern=Login --watchAll=false --json --outputFile=unit-test-result.json
+          npm test -- --testPathPattern=Login --json --outputFile=unit-test-result.json
 
-      # 5. Run E2E Tests (Cypress) với báo cáo JUnit
-      - name: Run E2E Tests
+      # 5. Run E2E Tests (Cypress)
+      - name: Run Login E2E Tests
         run: |
           cd frontend
-          npx cypress run --spec "cypress/e2e/login.e2e.spec.js" \
-            --reporter junit \
-            --reporter-options "mochaFile=cypress/results/e2e-results.xml,toConsole=true" \
-            --browser chrome
+          npx cypress run --spec "cypress/e2e/login.e2e.spec.js" --reporter junit --reporter-options "mochaFile=cypress/results/e2e-[hash].xml"
 
-      # 6. Upload artifacts: screenshots, videos, reports
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+      # 6. Upload test artifacts (logs, screenshots, videos)
+      - name: Upload Test Artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: login-test-artifacts
           path: |
+            frontend/unit-test-result.json
             frontend/cypress/results
             frontend/cypress/screenshots
             frontend/cypress/videos
-            frontend/unit-test-result.json
-            
