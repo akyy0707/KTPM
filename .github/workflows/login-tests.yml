@@ -11,44 +11,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Diagnostic Step: show files for debugging
-      - name: Show repository structure
-        run: ls -R
-        shell: bash
-
-      # 3️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
 
-      # 4️⃣ Install dependencies
       - name: Install dependencies
-        run: npm install
+        run: cd frontend && npm install
 
-      # 5️⃣ Run Login Unit Tests
       - name: Run Login Unit Tests
         run: |
+          cd frontend
           npm test -- --testPathPattern=Login --watchAll=false --json --outputFile=unit-test-result.json
 
-      # 6️⃣ Run E2E Tests with Cypress
       - name: Run Login E2E Tests
-        uses: cypress-io/github-action@v6
-        with:
-          start: npm start
-          wait-on: 'http://localhost:3000'
-          spec: 'cypress/e2e/login.e2e.spec.js'
+        run: |
+          cd frontend
+          npx cypress run --spec "cypress/e2e/login.e2e.spec.js"
+        env:
+          CYPRESS_BASE_URL: http://localhost:3000
 
-      # 7️⃣ Upload test reports as artifacts
       - name: Upload Test Reports
         uses: actions/upload-artifact@v4
         with:
           name: login-test-reports
-          path: |
-            unit-test-result.json
-            cypress/results/e2e-results.xml
+          path: frontend/unit-test-result.json
           retention-days: 7
