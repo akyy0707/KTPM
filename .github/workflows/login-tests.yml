@@ -11,39 +11,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
+      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Setup Node.js
+      # 2️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      # 3. Install dependencies
+      # 3️⃣ Install dependencies
       - name: Install dependencies
-        run: |
-          cd frontend
-          npm install
+        run: npm install
 
-      # 4. Run Unit Tests for Login
+      # 4️⃣ Run Unit Tests for Login
       - name: Run Login Unit Tests
         run: |
-          cd frontend
           npm test -- --testPathPattern=Login --watchAll=false --json --outputFile=unit-test-result.json
 
-      # 5. Run E2E Tests with Cypress
+      # 5️⃣ Run E2E Tests with Cypress
       - name: Run Login E2E Tests
         run: |
-          cd frontend
-          npx cypress run --spec "cypress/e2e/login.e2e.spec.js" --reporter junit --reporter-options "mochaFile=cypress/results/e2e-results.xml"
+          npx cypress run --spec "cypress/e2e/login.e2e.spec.js" \
+          --reporter junit \
+          --reporter-options "mochaFile=cypress/results/e2e-results.xml"
 
-      # 6. Upload test reports as artifacts
+      # 6️⃣ Upload test reports as artifacts
       - name: Upload Test Reports
         uses: actions/upload-artifact@v4
         with:
           name: login-test-reports
           path: |
-            frontend/unit-test-result.json
-            frontend/cypress/results/e2e-results.xml
+            unit-test-result.json
+            cypress/results/e2e-results.xml
