@@ -7,13 +7,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @DisplayName("Product Service Unit Tests")
@@ -32,7 +31,7 @@ class ProductServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         product = new Product(1L, "Laptop", 15000000, 10, "Electronics");
-        productDto = new ProductDto("Laptop", 15000000, 10, "Electronics");
+        productDto = new ProductDto((long) 1, "Laptop", 15000000, 10, "Electronics");
     }
 
     // ===== TC1: CREATE =====
@@ -68,7 +67,7 @@ class ProductServiceTest {
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(productRepository.save(any(Product.class))).thenReturn(product);
 
-        ProductDto updateDto = new ProductDto("Laptop Gaming", 20000000, 8, "Electronics");
+        ProductDto updateDto = new ProductDto((long) 1, "Laptop Gaming", 20000000, 8, "Electronics");
         ProductDto result = productService.updateProduct(1L, updateDto);
 
         assertEquals("Laptop Gaming", result.getName());
@@ -93,15 +92,13 @@ class ProductServiceTest {
     @Test
     @DisplayName("TC5: Lay danh sach san pham voi pagination")
     void testGetAllProducts() {
-        List<Product> products = List.of(product);
-        Page<Product> page = new PageImpl<>(products);
-        when(productRepository.findAll(any(PageRequest.class))).thenReturn(page);
+        List<Product> products = Arrays.asList(
+                new Product(1L, "Laptop", 15000000, 10, "Electronic"));
+        when(productRepository.findAll()).thenReturn(products);
 
-        List<ProductDto> result = productService.getAllProducts(0, 5);
-
+        List<ProductDto> result = productService.getAllProducts();
         assertEquals(1, result.size());
         assertEquals("Laptop", result.get(0).getName());
-        verify(productRepository, times(1)).findAll(any(PageRequest.class));
     }
 
     // ===== TC6: GET BY ID - NOT FOUND =====

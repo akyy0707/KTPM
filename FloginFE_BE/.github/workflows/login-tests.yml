@@ -1,0 +1,49 @@
+name: Login Tests CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-login:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️ Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2️ Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # 3️ Install dependencies
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install
+
+      # 4️ Run Login Unit Tests
+      - name: Run Login Unit Tests
+        run: |
+          cd frontend
+          npm test -- --testPathPattern=Login --ci --reporters=default jest-junit
+        env:
+          CI: true
+
+      # 5️ Run Login E2E Tests with Cypress
+      - name: Run Login E2E Tests
+        run: |
+          cd frontend
+          npx cypress run --spec "cypress/e2e/login.e2e.spec.js" --reporter junit --reporter-options "mochaFile=reports/cypress/results-[hash].xml"
+          
+      # 6️ Upload test reports (optional)
+      - name: Upload test reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: login-test-reports
+          path: frontend/reports/

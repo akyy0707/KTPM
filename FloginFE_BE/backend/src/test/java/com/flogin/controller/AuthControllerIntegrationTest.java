@@ -6,7 +6,6 @@ import com.flogin.dto.LoginResponse;
 import com.flogin.service.AuthService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -24,36 +23,34 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AuthControllerIntegrationTest {
 
     @Autowired
-    private MockMvc mockMvc; // MockMvc cho phép test API endpoint mà không cần chạy server thật
+    private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper; // Dùng để convert object sang JSON
+    private ObjectMapper objectMapper;
 
     @MockBean
-    private AuthService authService; // Mock service để kiểm soát dữ liệu trả về
+    private AuthService authService;
 
-    // ===== a) Test POST /api/auth/login endpoint =====
+    // a) Test POST /api/auth/login - Success
     @Test
     @DisplayName("POST /api/auth/login - Success")
     void testLoginSuccess() throws Exception {
-        // Tạo request giả lập
         LoginRequest request = new LoginRequest("testuser", "Test123");
-        // Tạo response giả lập từ service
-        LoginResponse mockResponse = new LoginResponse(true, "token123", null);
+        LoginResponse mockResponse = new LoginResponse(true, "token123", "Success");
 
-        // Khi gọi authService.authenticate bất kỳ LoginRequest nào, trả về mockResponse
         when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
-        mockMvc.perform(post("/api/auth/login") // Gửi POST request
+        mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))) // body JSON
-                // ===== b) Test response structure và status code =====
-                .andExpect(status().isOk()) // Kiểm tra status code 200 OK
-                .andExpect(jsonPath("$.success").value(true)) // Kiểm tra trường success
-                .andExpect(jsonPath("$.token").value("token123")) // Kiểm tra token tồn tại và đúng
-                .andExpect(jsonPath("$.message").doesNotExist()); // message không tồn tại
+                .content(objectMapper.writeValueAsString(request)))
+                // ✅ b) Test response structure và status code
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.token").value("token123"))
+                .andExpect(jsonPath("$.message").value("Success"));
     }
 
+    // b) Test POST /api/auth/login - Failure
     @Test
     @DisplayName("POST /api/auth/login - Failure")
     void testLoginFailure() throws Exception {
@@ -65,23 +62,22 @@ public class AuthControllerIntegrationTest {
         mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                // ===== b) Test response structure và status code =====
-                .andExpect(status().isUnauthorized()) // Status 401 cho thất bại
+                .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.token").doesNotExist())
                 .andExpect(jsonPath("$.message").value("Sai thông tin"));
     }
 
-    // ===== c) Test CORS headers =====
+    // c) Test CORS headers
     @Test
     @DisplayName("CORS preflight request - OPTIONS")
     void testCorsPreflight() throws Exception {
-        // Gửi request OPTIONS (preflight) để kiểm tra CORS headers
         mockMvc.perform(options("/api/auth/login")
-                .header("Origin", "http://localhost:3000") // Gốc gọi request
+                .header("Origin", "http://localhost:3000")
                 .header("Access-Control-Request-Method", "POST"))
-                .andExpect(status().isOk()) // Preflight thường trả 200 OK
-                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:3000"))
-                .andExpect(header().string("Access-Control-Allow-Methods", "POST"));
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "*"))
+                .andExpect(header().string("Access-Control-Allow-Methods", "POST,OPTIONS"));
     }
+
 }

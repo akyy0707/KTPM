@@ -1,0 +1,19 @@
+class LoginPage {
+    visit() {
+        cy.visit("/login");
+    }
+
+    fillUsername(username) {
+        cy.get('[data-testid="username-input"]').clear().type(username);
+    }
+
+    fillPassword(password) {
+        cy.get('[data-testid="password-input"]').clear().type(password);
+    }
+
+    submit() {
+        cy.get('[data-testid="login-button"]').click();
+    }
+}
+
+export default new LoginPage();

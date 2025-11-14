@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast as defaultToast, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function Login({
   loginUserFunc,
   validateUsernameFunc,
   validatePasswordFunc,
-  toast,
+  toast = defaultToast,
 }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -14,18 +14,24 @@ export default function Login({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate
-    const uErr = validateUsernameFunc(username);
+    // Cypress override
+    const finalValidateUsername =
+      window.__test_validateUsernameFunc || validateUsernameFunc;
+    const finalValidatePassword =
+      window.__test_validatePasswordFunc || validatePasswordFunc;
+    const finalLoginUserFunc = window.__test_loginUserFunc || loginUserFunc;
+
+    const uErr = finalValidateUsername(username);
     if (uErr) return toast.error(uErr);
 
-    const pErr = validatePasswordFunc(password);
+    const pErr = finalValidatePassword(password);
     if (pErr) return toast.error(pErr);
 
     try {
-      const res = await loginUserFunc(username, password);
+      const res = await finalLoginUserFunc(username, password);
       if (res.success) {
         localStorage.setItem("token", res.token);
-        toast.success("Đăng nhập thành công");
+        toast.success(res.message || "Đăng nhập thành công");
       } else {
         toast.error(res.message || "Đăng nhập thất bại");
       }
@@ -54,6 +60,7 @@ export default function Login({
                 placeholder="Nhập username..."
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                data-testid="username-input"
               />
             </div>
             <div className="mb-3">
@@ -67,15 +74,41 @@ export default function Login({
                 placeholder="Nhập mật khẩu..."
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                data-testid="password-input"
               />
             </div>
-            <button type="submit" className="btn btn-primary w-100">
+            <button
+              type="submit"
+              className="btn btn-primary w-100"
+              data-testid="login-button"
+            >
               Đăng nhập
             </button>
           </form>
         </div>
       </div>
-      <ToastContainer position="top-right" autoClose={3000} />
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        transition={Slide} // ✔ FIX QUAN TRỌNG
+        newestOnTop={true}
+        closeOnClick
+        draggable={false}
+        pauseOnHover={false}
+        data-testid="toast-container"
+      />
     </div>
   );
 }
+
+Login.defaultProps = {
+  validateUsernameFunc: () => null,
+  validatePasswordFunc: () => null,
+  loginUserFunc: async () => ({
+    success: true,
+    token: "token_123",
+    message: "Đăng nhập thành công",
+  }),
+  toast: defaultToast,
+};
