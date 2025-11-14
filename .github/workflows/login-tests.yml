@@ -10,23 +10,19 @@ jobs:
   test-login:
     runs-on: ubuntu-latest
     
-    # ⚠️ FIX: Set the default working directory to 'frontend'
-    # Double-check that 'frontend' matches the exact case (e.g., 'frontend', not 'FrontEnd').
-    defaults:
-      run:
-        working-directory: frontend
+    # ⚠️ FIX: REMOVING the 'defaults' block and setting 'working-directory' EXPLICITLY on every step.
 
     steps:
       # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Diagnostic Step: Verify directory structure
+      # 2️⃣ Diagnostic Step: Verify directory structure (CRITICAL: Look at the output of this step!)
       - name: Show repository file structure
-        # This will run from the root of the repo (before defaults.run takes effect)
-        # and print out all files/folders to confirm the path and case of 'frontend'.
+        # This shows the exact folder names and casing in your repository.
+        # Ensure the output shows 'frontend' exactly as written.
         run: ls -R
-        working-directory: ${{ github.workspace }} # Run from repo root
+        working-directory: ${{ github.workspace }}
         shell: bash
 
       # 3️⃣ Setup Node.js
@@ -35,40 +31,33 @@ jobs:
         with:
           node-version: 18
 
-      # 4️⃣ Install dependencies (Runs in 'frontend' due to defaults.run)
+      # 4️⃣ Install dependencies (Now EXPLICITLY set to 'frontend')
       - name: Install Frontend dependencies
-        # If the 'ls -R' output above shows a different case (e.g., 'FrontEnd'),
-        # you must update the 'defaults.run.working-directory' setting above.
         run: npm install
+        working-directory: frontend # <-- Explicitly forcing the path here
 
-      # 5️⃣ Run Unit Tests for Login
+      # 5️⃣ Run Unit Tests for Login (Now EXPLICITLY set to 'frontend')
       - name: Run Login Unit Tests
-        # Output file is created inside the 'frontend' folder
         run: |
           npm test -- --testPathPattern=Login --watchAll=false --json --outputFile=unit-test-result.json
+        working-directory: frontend # <-- Explicitly forcing the path here
 
-      # 6️⃣ & 7️⃣ Run E2E Tests with Cypress (CRITICAL FIX: Starting the app)
+      # 6️⃣ & 7️⃣ Run E2E Tests with Cypress
       - name: Run Login E2E Tests
-        # Using the dedicated Cypress action handles installation, waiting, and running reliably.
         uses: cypress-io/github-action@v6
         with:
-          # CRITICAL: This starts your frontend app in the background.
           start: npm start
-          # CRITICAL: This waits for the app to be available before Cypress runs tests. 
           wait-on: 'http://localhost:3000'
-          # Use the path relative to the root of the project
           spec: 'cypress/e2e/login.e2e.spec.js'
-          # We explicitly set the working directory for this action as a safeguard
-          working-directory: frontend 
+          working-directory: frontend # <-- Already explicit
 
       # 8️⃣ Upload test reports as artifacts
+      # Paths here must be relative to the repository root.
       - name: Upload Test Reports
         uses: actions/upload-artifact@v4
         with:
           name: login-test-reports
           path: |
-            # Corrected path for unit test result
             frontend/unit-test-result.json
-            # Assuming the E2E XML file is created relative to the working directory
             frontend/cypress/results/e2e-results.xml
           retention-days: 7
